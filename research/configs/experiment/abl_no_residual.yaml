@@ -1,0 +1,37 @@
+# =============================================================================
+# Ablation: No Residual Connections
+# Hypothesis H2: Residual Connections become increasingly important as training
+# data increases.
+# =============================================================================
+
+# @package experiment
+name: abl_no_residual
+phase: phase3_screening
+description: >
+  Remove residual connections from all transformer blocks.
+  This is expected to be the most severe ablation and will serve as the
+  "worst ablation" candidate for external validation.
+
+hypothesis: H2
+hypothesis_statement: >
+  Removing residual connections causes severe gradient flow problems, making
+  training unstable especially with deeper networks and more data.
+
+independent_variable: use_residual
+independent_variable_value: false
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - d_ff
+  - pre_norm
+  - activation
+  - pos_encoding
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  use_residual: false
