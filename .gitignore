@@ -1,0 +1,33 @@
+# Python artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# Environments
+venv/
+.venv/
+env/
+.env
+
+# Large datasets, model weights, and archives
+*.pt
+*.pth
+*.bin
+*.safetensors
+*.zip
+*.tar.gz
+*.gz
+*.tokens
+*.npy
+*.npz
+
+# OS / IDE
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
