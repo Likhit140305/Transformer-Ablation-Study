@@ -1,0 +1,40 @@
+# =============================================================================
+# Master Configuration — Transformer Ablation Study
+# All parameters come from this configuration tree.
+# No hyperparameters are ever hardcoded in Python source code.
+# =============================================================================
+
+defaults:
+  - model: transformer_base
+  - dataset: wikitext2
+  - training: base
+  - optimizer: adamw
+  - logging_cfg: default
+  - experiment: baseline
+  - _self_
+
+# ── Experiment Identity ────────────────────────────────────────────────────────
+experiment_name: baseline
+seed: 42
+
+# Experiments in this study require the NVIDIA GPU. Training aborts rather than
+# silently falling back to CPU if CUDA is unavailable.
+runtime:
+  device: cuda
+
+# ── Paths ─────────────────────────────────────────────────────────────────────
+paths:
+  data_dir: ${hydra:runtime.cwd}/research/data
+  output_dir: ${hydra:runtime.cwd}/research/results/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}_seed${seed}
+  log_dir: ${hydra:runtime.cwd}/research/logs
+  checkpoint_dir: ${paths.output_dir}/checkpoints
+
+# ── Hydra Output ──────────────────────────────────────────────────────────────
+hydra:
+  run:
+    dir: ${paths.output_dir}
+  sweep:
+    dir: ${paths.output_dir}
+    subdir: ${hydra.job.num}
+  job:
+    chdir: false
