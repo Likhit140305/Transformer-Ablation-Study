@@ -1,0 +1,34 @@
+# =============================================================================
+# Ablation: Post-LayerNorm (vs Pre-LayerNorm baseline)
+# =============================================================================
+
+# @package experiment
+name: abl_post_layernorm
+phase: phase3_screening
+description: >
+  Switch from Pre-LN (baseline) to Post-LN.
+  Tests whether normalization position affects training stability and final quality.
+
+hypothesis: H5
+hypothesis_statement: >
+  Post-LN training is less stable than Pre-LN, especially at longer sequences,
+  requiring careful learning rate tuning to avoid divergence.
+
+independent_variable: pre_norm
+independent_variable_value: false
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - d_ff
+  - activation
+  - use_residual
+  - pos_encoding
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  pre_norm: false
