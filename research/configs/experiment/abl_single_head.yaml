@@ -1,0 +1,37 @@
+# =============================================================================
+# Ablation: Single Attention Head
+# Hypothesis H4: Certain attention heads contribute negligibly while others
+# remain critical.
+# =============================================================================
+
+# @package experiment
+name: abl_single_head
+phase: phase3_screening
+description: >
+  Reduce number of attention heads to 1 (from baseline 8).
+  All head dimensions scale proportionally so total parameters stay similar.
+  Tests H4: whether multi-head diversity is essential.
+
+hypothesis: H4
+hypothesis_statement: >
+  Collapsing to a single attention head degrades performance significantly,
+  suggesting multi-head diversity is important for representational capacity.
+
+independent_variable: n_heads
+independent_variable_value: 1
+controlled_variables:
+  - d_model
+  - n_layers
+  - d_ff
+  - pre_norm
+  - activation
+  - use_residual
+  - pos_encoding
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  n_heads: 1
