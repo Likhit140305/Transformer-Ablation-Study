@@ -1,0 +1,38 @@
+# =============================================================================
+# Ablation: No Positional Encoding
+# Hypothesis H1: Positional Encoding becomes increasingly important as sequence
+# length increases.
+# =============================================================================
+
+# @package experiment
+name: abl_no_pos_enc
+phase: phase3_screening
+description: >
+  Ablation removing positional encoding entirely.
+  Tests H1: whether positional information is critical and how its importance
+  scales with sequence length.
+
+hypothesis: H1
+hypothesis_statement: >
+  Removing positional encoding degrades performance, and this degradation
+  increases with sequence length (128 vs 512).
+
+independent_variable: pos_encoding
+independent_variable_value: "none"
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - d_ff
+  - pre_norm
+  - activation
+  - use_residual
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+# Model overrides (applied on top of transformer_base defaults)
+model_overrides:
+  pos_encoding: none
