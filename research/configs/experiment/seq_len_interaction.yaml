@@ -1,0 +1,30 @@
+# =============================================================================
+# Sequence-Length Interaction Study Configuration
+# Phase 4 — MANDATORY. This is a primary scientific contribution.
+# Research Question: Does architectural importance change with context length?
+# =============================================================================
+
+# @package experiment
+name: seq_len_interaction
+phase: phase4_seq_len_interaction
+description: >
+  Mandatory sequence-length interaction study.
+  Runs baseline + promoted ablations across seq_lengths [128, 512].
+  3 seeds per configuration.
+  Primary scientific contribution answering H1 and H5.
+
+hypothesis: H1_H5
+hypothesis_statement: >
+  The relative importance of Transformer components is not fixed but changes
+  with sequence length. Specifically, positional encoding ablation effect
+  increases with longer sequences, while FFN and residual effects may be
+  length-invariant.
+
+num_seeds: 3
+seeds: [42, 1337, 2023]
+
+seq_lengths: [128, 512]
+
+# Which experiments to run at each sequence length
+# (Populated after Phase 3 screening based on promotion criteria)
+promoted_experiments: []   # Filled by run_experiment.py after screening
