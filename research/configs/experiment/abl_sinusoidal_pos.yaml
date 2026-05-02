@@ -1,0 +1,34 @@
+# =============================================================================
+# Ablation: Sinusoidal Positional Encoding
+# =============================================================================
+
+# @package experiment
+name: abl_sinusoidal_pos
+phase: phase3_screening
+description: >
+  Replace learned positional encoding with fixed sinusoidal encoding.
+  Tests whether position representation type (learned vs fixed) matters.
+
+hypothesis: H1
+hypothesis_statement: >
+  Sinusoidal and learned positional encodings perform comparably on short
+  sequences but sinusoidal may generalize better to long sequences.
+
+independent_variable: pos_encoding
+independent_variable_value: sinusoidal
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - d_ff
+  - pre_norm
+  - activation
+  - use_residual
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  pos_encoding: sinusoidal
