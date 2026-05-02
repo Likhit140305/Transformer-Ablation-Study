@@ -1,0 +1,34 @@
+# =============================================================================
+# Ablation: Linear FFN (remove non-linearity)
+# =============================================================================
+
+# @package experiment
+name: abl_linear_ffn
+phase: phase3_screening
+description: >
+  Replace GELU activation in FFN with identity (linear FFN).
+  Tests the role of non-linearity in the feed-forward component.
+
+hypothesis: H3
+hypothesis_statement: >
+  Removing FFN non-linearity degrades performance, but the degradation may be
+  smaller than expected if self-attention provides sufficient non-linearity.
+
+independent_variable: activation
+independent_variable_value: linear
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - d_ff
+  - pre_norm
+  - use_residual
+  - pos_encoding
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  activation: linear
