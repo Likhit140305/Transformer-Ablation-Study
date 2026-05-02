@@ -1,0 +1,21 @@
+# =============================================================================
+# WikiText-2 Dataset Configuration
+# Primary dataset for all ablation experiments.
+# =============================================================================
+
+# @package dataset
+name: wikitext2
+dataset_dir: wikitext-2
+train_file: wiki.train.tokens
+validation_file: wiki.valid.tokens
+test_file: wiki.test.tokens
+
+seq_length: 128
+batch_size: 32
+num_workers: 0
+pin_memory: false
+max_vocab_size: null
+min_frequency: 1
+pad_token: <pad>
+unk_token: <unk>
+verify_checksums: true
