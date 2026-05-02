@@ -1,0 +1,36 @@
+# =============================================================================
+# Ablation: Reduced FFN Width
+# Hypothesis H3: FFN width affects optimization dynamics more than final PPL.
+# =============================================================================
+
+# @package experiment
+name: abl_reduced_ffn
+phase: phase3_screening
+description: >
+  Reduce FFN inner dimension from 1024 to 256 (= d_model, ratio 1x vs baseline 4x).
+  Tests H3: whether FFN width primarily affects optimization speed or final perplexity.
+
+hypothesis: H3
+hypothesis_statement: >
+  Reducing FFN width degrades convergence speed (training loss curve) more
+  visibly than final validation perplexity, suggesting FFN width primarily
+  affects optimization dynamics.
+
+independent_variable: d_ff
+independent_variable_value: 256
+controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - pre_norm
+  - activation
+  - use_residual
+  - pos_encoding
+  - dataset
+  - training
+
+num_seeds: 2
+seeds: [42, 1337]
+
+model_overrides:
+  d_ff: 256
