@@ -1,0 +1,41 @@
+# =============================================================================
+# Baseline Transformer Configuration
+# Architecture: Decoder-only, 6 layers, d_model=256, 8 heads, d_ff=1024
+# Chosen to be trainable on a single GPU within reasonable time budgets.
+# =============================================================================
+
+# @package model
+_target_: research.models.transformer.transformer.TransformerLM
+
+# ── Architecture ──────────────────────────────────────────────────────────────
+d_model: 256          # Model hidden dimension
+n_heads: 8            # Number of attention heads
+n_layers: 6           # Number of transformer blocks
+d_ff: 1024            # Feed-forward inner dimension (= 4 × d_model)
+max_seq_length: 256   # Maximum positional encoding length (overridden per experiment)
+
+# ── Regularization ───────────────────────────────────────────────────────────
+dropout: 0.1          # Residual dropout
+emb_dropout: 0.1      # Embedding dropout
+attn_dropout: 0.1     # Attention weight dropout
+ff_dropout: 0.1       # Feed-forward dropout
+
+# ── Positional Encoding ──────────────────────────────────────────────────────
+# Options: "learned", "sinusoidal", "none"
+pos_encoding: learned
+
+# ── Normalization ────────────────────────────────────────────────────────────
+# pre_norm = True  → Pre-LN (x + sublayer(LN(x)))
+# pre_norm = False → Post-LN (LN(x + sublayer(x)))
+pre_norm: true
+
+# ── FFN Activation ───────────────────────────────────────────────────────────
+# Options: "gelu", "relu", "linear"
+activation: gelu
+
+# ── Weight Tying ─────────────────────────────────────────────────────────────
+tie_weights: true
+
+# ── Residual Connections ─────────────────────────────────────────────────────
+# If False, residual connection is removed (ablation)
+use_residual: true
