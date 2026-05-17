@@ -1,0 +1,2 @@
+2026-07-21 14:32:16,642 - INFO - === PHASE 1: Variance Pilot ===
+2026-07-21 14:32:16,643 - INFO - Running: C:\Users\Likhit Hegde\AppData\Local\Programs\Python\Python311\python.exe research/experiments/train.py experiment=baseline seed=42
