@@ -1,0 +1,53 @@
+{
+  "source": "https://huggingface.co/datasets/Salesforce/wikitext",
+  "variant": "word-level v1 (non-raw)",
+  "datasets_library_version": "5.0.0",
+  "datasets": {
+    "wikitext-2": {
+      "configuration": "wikitext-2-v1",
+      "records": {
+        "train": {
+          "file": "wikitext-2\\wiki.train.tokens",
+          "rows": 36718,
+          "bytes": 10868449,
+          "sha256": "8007d0879fdd44a022abb775811da93c1794f0a2970710617276c1212c2851a2"
+        },
+        "validation": {
+          "file": "wikitext-2\\wiki.valid.tokens",
+          "rows": 3760,
+          "bytes": 1129064,
+          "sha256": "86db6db93e7808e627b91c94c7a65e62d30895e4df55f6237acd628678decc0c"
+        },
+        "test": {
+          "file": "wikitext-2\\wiki.test.tokens",
+          "rows": 4358,
+          "bytes": 1265122,
+          "sha256": "ad692122897b1f41ac872278a854de2dd98dfd5a6d7189fe1c4cbd8ddb903b51"
+        }
+      }
+    },
+    "wikitext-103": {
+      "configuration": "wikitext-103-v1",
+      "records": {
+        "train": {
+          "file": "wikitext-103\\wiki.train.tokens",
+          "rows": 1801350,
+          "bytes": 542704244,
+          "sha256": "d0109862dc2c96fc852cb6a121527fd6a8ed6eb6babdc916f167f4a46511be58"
+        },
+        "validation": {
+          "file": "wikitext-103\\wiki.valid.tokens",
+          "rows": 3760,
+          "bytes": 1149692,
+          "sha256": "470ad9c2428128dd1b89d0f4581c491c02f6b3663dadfa221ceb960ea78021fa"
+        },
+        "test": {
+          "file": "wikitext-103\\wiki.test.tokens",
+          "rows": 4358,
+          "bytes": 1289750,
+          "sha256": "a54c92214cdb3b27146a4ed778797a7145c10612f6195b1dd08be6931f7ef496"
+        }
+      }
+    }
+  }
+}
