@@ -1,0 +1,4 @@
+- experiment_name=actual_data_smoke
+- seed=42
+- training.max_steps=1
+- training.max_epochs=1
