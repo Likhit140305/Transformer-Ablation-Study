@@ -1,0 +1,18 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Traceback (most recent call last):
+  File "D:\Desktop\Transformer-Ablation\research\datasets\prepare_wikitext.py", line 81, in <module>
+    main()
+  File "D:\Desktop\Transformer-Ablation\research\datasets\prepare_wikitext.py", line 74, in main
+    manifest["datasets"][name] = prepare_dataset(args.output_root, name, configuration)
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "D:\Desktop\Transformer-Ablation\research\datasets\prepare_wikitext.py", line 49, in prepare_dataset
+    write_split(dataset[split]["text"], path)
+  File "D:\Desktop\Transformer-Ablation\research\datasets\prepare_wikitext.py", line 38, in write_split
+    destination.write_text("\n".join(texts) + "\n", encoding="utf-8")
+  File "C:\Users\Likhit Hegde\AppData\Local\Programs\Python\Python311\Lib\pathlib.py", line 1078, in write_text
+    with self.open(mode='w', encoding=encoding, errors=errors, newline=newline) as f:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\Likhit Hegde\AppData\Local\Programs\Python\Python311\Lib\pathlib.py", line 1044, in open
+    return io.open(self, mode, buffering, encoding, errors, newline)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: [Errno 13] Permission denied: 'research\\data\\wikitext-103\\wiki.train.tokens'
