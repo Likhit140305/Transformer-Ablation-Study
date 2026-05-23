@@ -1,0 +1,5 @@
+[2026-07-21 14:29:42,012][__main__][INFO] - Starting actual_data_smoke | seed=42 | device=cpu
+[2026-07-21 14:29:43,083][__main__][INFO] - Loaded 16030 train and 1670 validation sequences; vocabulary size=33278
+[2026-07-21 14:29:43,383][__main__][INFO] - Model parameters: 13323776
+[2026-07-21 14:30:15,090][__main__][INFO] - epoch=1 train_loss=10.4367 val_loss=10.2038 val_ppl=27005.4624
+[2026-07-21 14:30:15,231][__main__][INFO] - Training complete. best_val_ppl=27005.4624
