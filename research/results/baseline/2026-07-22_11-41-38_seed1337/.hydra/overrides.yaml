@@ -1,0 +1,3 @@
+- experiment=baseline
+- seed=1337
+- runtime.device=cuda
