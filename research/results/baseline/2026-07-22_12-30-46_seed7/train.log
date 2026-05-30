@@ -1,0 +1,17 @@
+[2026-07-22 12:30:47,511][__main__][INFO] - Starting baseline | seed=7 | device=cuda
+[2026-07-22 12:30:48,238][__main__][INFO] - Loaded 16030 train and 1670 validation sequences; vocabulary size=33278
+[2026-07-22 12:30:49,054][__main__][INFO] - Model parameters: 13323776
+[2026-07-22 12:32:23,386][__main__][INFO] - epoch=1 train_loss=6.5505 val_loss=5.8010 val_ppl=330.6299
+[2026-07-22 12:33:56,215][__main__][INFO] - epoch=2 train_loss=5.7956 val_loss=5.5345 val_ppl=253.2904
+[2026-07-22 12:35:24,270][__main__][INFO] - epoch=3 train_loss=5.5213 val_loss=5.3560 val_ppl=211.8667
+[2026-07-22 12:36:54,206][__main__][INFO] - epoch=4 train_loss=5.3188 val_loss=5.2288 val_ppl=186.5688
+[2026-07-22 12:38:22,713][__main__][INFO] - epoch=5 train_loss=5.1564 val_loss=5.1381 val_ppl=170.3985
+[2026-07-22 12:39:46,885][__main__][INFO] - epoch=6 train_loss=5.0227 val_loss=5.0686 val_ppl=158.9453
+[2026-07-22 12:41:12,910][__main__][INFO] - epoch=7 train_loss=4.9087 val_loss=5.0180 val_ppl=151.1056
+[2026-07-22 12:42:38,323][__main__][INFO] - epoch=8 train_loss=4.8112 val_loss=4.9802 val_ppl=145.5064
+[2026-07-22 12:44:03,785][__main__][INFO] - epoch=9 train_loss=4.7265 val_loss=4.9580 val_ppl=142.3121
+[2026-07-22 12:45:31,140][__main__][INFO] - epoch=10 train_loss=4.6514 val_loss=4.9312 val_ppl=138.5428
+[2026-07-22 12:47:07,009][__main__][INFO] - epoch=11 train_loss=4.5835 val_loss=4.9080 val_ppl=135.3678
+[2026-07-22 12:48:40,927][__main__][INFO] - epoch=12 train_loss=4.5234 val_loss=4.8927 val_ppl=133.3160
+[2026-07-22 12:50:10,984][__main__][INFO] - epoch=13 train_loss=4.4687 val_loss=4.8761 val_ppl=131.1167
+[2026-07-22 12:51:43,274][__main__][INFO] - epoch=14 train_loss=4.4186 val_loss=4.8721 val_ppl=130.6001
