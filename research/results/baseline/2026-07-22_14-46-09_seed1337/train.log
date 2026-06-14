@@ -1,0 +1,7 @@
+[2026-07-22 14:46:10,978][__main__][INFO] - Starting baseline | seed=1337 | device=cuda
+[2026-07-22 14:46:11,686][__main__][INFO] - Loaded 16030 train and 1670 validation sequences; vocabulary size=33278
+[2026-07-22 14:46:12,467][__main__][INFO] - Model parameters: 13323776
+[2026-07-22 14:46:53,768][__main__][INFO] - epoch=1 train_loss=6.5488 val_loss=5.8073 val_ppl=332.7330
+[2026-07-22 14:47:34,803][__main__][INFO] - epoch=2 train_loss=5.8138 val_loss=5.5809 val_ppl=265.2985
+[2026-07-22 14:48:15,943][__main__][INFO] - epoch=3 train_loss=5.5991 val_loss=5.4894 val_ppl=242.1057
+[2026-07-22 14:48:16,014][__main__][INFO] - Training complete. best_val_ppl=242.1057
