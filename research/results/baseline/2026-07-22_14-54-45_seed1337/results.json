@@ -1,0 +1,155 @@
+{
+  "experiment": "baseline",
+  "seed": 1337,
+  "best_val_ppl": 242.10574295175064,
+  "runtime_seconds": 123.65357899999981,
+  "total_params": 13323776,
+  "vocab_size": 33278,
+  "train_examples": 16030,
+  "validation_examples": 1670,
+  "data_source": "local_verified_wikitext",
+  "dataset_name": "wikitext2",
+  "steps_completed": 1503,
+  "history": {
+    "train_loss": [
+      6.548750928901391,
+      5.813773811242763,
+      5.599147645815863
+    ],
+    "val_loss": [
+      5.807340436924004,
+      5.580855498627988,
+      5.489374585066013
+    ],
+    "val_ppl": [
+      332.73302341121183,
+      265.29847120898813,
+      242.10574295175064
+    ]
+  },
+  "config": {
+    "model": {
+      "_target_": "research.models.transformer.transformer.TransformerLM",
+      "d_model": 256,
+      "n_heads": 8,
+      "n_layers": 6,
+      "d_ff": 1024,
+      "max_seq_length": 256,
+      "dropout": 0.1,
+      "emb_dropout": 0.1,
+      "attn_dropout": 0.1,
+      "ff_dropout": 0.1,
+      "pos_encoding": "learned",
+      "pre_norm": true,
+      "activation": "gelu",
+      "tie_weights": true,
+      "use_residual": true
+    },
+    "dataset": {
+      "name": "wikitext2",
+      "dataset_dir": "wikitext-2",
+      "train_file": "wiki.train.tokens",
+      "validation_file": "wiki.valid.tokens",
+      "test_file": "wiki.test.tokens",
+      "seq_length": 128,
+      "batch_size": 32,
+      "num_workers": 0,
+      "pin_memory": false,
+      "max_vocab_size": null,
+      "min_frequency": 1,
+      "pad_token": "<pad>",
+      "unk_token": "<unk>",
+      "verify_checksums": true
+    },
+    "training": {
+      "max_epochs": 3,
+      "max_steps": null,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.1,
+      "gradient_clip_val": 1.0,
+      "warmup_steps": 200,
+      "scheduler": "cosine",
+      "eta_min_ratio": 0.1,
+      "accumulate_grad_batches": 1,
+      "eval_every_n_epochs": 1,
+      "eval_batches": null,
+      "save_best_model": true,
+      "save_final_model": true,
+      "checkpoint_metric": "val_perplexity",
+      "checkpoint_mode": "min",
+      "log_every_n_steps": 50,
+      "early_stopping": false,
+      "early_stopping_patience": 5,
+      "early_stopping_min_delta": 0.1,
+      "precision": null,
+      "deterministic": true,
+      "benchmark": false
+    },
+    "optimizer": {
+      "_target_": "torch.optim.AdamW",
+      "lr": 0.0003,
+      "weight_decay": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "eps": 1e-08
+    },
+    "logging_cfg": {
+      "level": "INFO",
+      "log_to_file": true,
+      "log_to_console": true,
+      "wandb": {
+        "enabled": false,
+        "project": "transformer-ablation-study",
+        "entity": null,
+        "tags": [],
+        "notes": "",
+        "mode": "online"
+      },
+      "tensorboard": {
+        "enabled": false
+      },
+      "json_log": true
+    },
+    "experiment": {
+      "name": "abl_reduced_ffn",
+      "phase": "phase3_screening",
+      "description": "Reduce FFN inner dimension from 1024 to 256 (= d_model, ratio 1x vs baseline 4x). Tests H3: whether FFN width primarily affects optimization speed or final perplexity.\n",
+      "hypothesis": "H3",
+      "hypothesis_statement": "Reducing FFN width degrades convergence speed (training loss curve) more visibly than final validation perplexity, suggesting FFN width primarily affects optimization dynamics.\n",
+      "independent_variable": "d_ff",
+      "independent_variable_value": 256,
+      "controlled_variables": [
+        "d_model",
+        "n_heads",
+        "n_layers",
+        "pre_norm",
+        "activation",
+        "use_residual",
+        "pos_encoding",
+        "dataset",
+        "training"
+      ],
+      "num_seeds": 2,
+      "seeds": [
+        42,
+        1337
+      ],
+      "model_overrides": {
+        "d_ff": 256
+      }
+    },
+    "experiment_name": "baseline",
+    "seed": 1337,
+    "runtime": {
+      "device": "cuda"
+    },
+    "paths": {
+      "data_dir": "D:\\Desktop\\Transformer-Ablation/research/data",
+      "output_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_14-54-45_seed1337",
+      "log_dir": "D:\\Desktop\\Transformer-Ablation/research/logs",
+      "checkpoint_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_14-54-45_seed1337/checkpoints"
+    }
+  }
+}
