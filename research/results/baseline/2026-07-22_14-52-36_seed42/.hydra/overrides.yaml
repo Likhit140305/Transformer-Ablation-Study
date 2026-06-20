@@ -1,0 +1,4 @@
+- experiment=abl_reduced_ffn
+- seed=42
+- runtime.device=cuda
+- training.max_epochs=3
