@@ -1,0 +1,4 @@
+- experiment=abl_no_residual
+- seed=1337
+- runtime.device=cuda
+- training.max_epochs=3
