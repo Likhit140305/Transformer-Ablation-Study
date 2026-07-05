@@ -1,0 +1,155 @@
+{
+  "experiment": "baseline",
+  "seed": 42,
+  "best_val_ppl": 241.91047108156528,
+  "runtime_seconds": 123.88833650000015,
+  "total_params": 13323776,
+  "vocab_size": 33278,
+  "train_examples": 16030,
+  "validation_examples": 1670,
+  "data_source": "local_verified_wikitext",
+  "dataset_name": "wikitext2",
+  "steps_completed": 1503,
+  "history": {
+    "train_loss": [
+      6.55456848870347,
+      5.818765435781021,
+      5.603372367233019
+    ],
+    "val_loss": [
+      5.813668670197447,
+      5.588393960027638,
+      5.488567703498338
+    ],
+    "val_ppl": [
+      334.8453120797045,
+      267.3059707154463,
+      241.91047108156528
+    ]
+  },
+  "config": {
+    "model": {
+      "_target_": "research.models.transformer.transformer.TransformerLM",
+      "d_model": 256,
+      "n_heads": 8,
+      "n_layers": 6,
+      "d_ff": 1024,
+      "max_seq_length": 256,
+      "dropout": 0.1,
+      "emb_dropout": 0.1,
+      "attn_dropout": 0.1,
+      "ff_dropout": 0.1,
+      "pos_encoding": "learned",
+      "pre_norm": true,
+      "activation": "gelu",
+      "tie_weights": true,
+      "use_residual": true
+    },
+    "dataset": {
+      "name": "wikitext2",
+      "dataset_dir": "wikitext-2",
+      "train_file": "wiki.train.tokens",
+      "validation_file": "wiki.valid.tokens",
+      "test_file": "wiki.test.tokens",
+      "seq_length": 128,
+      "batch_size": 32,
+      "num_workers": 0,
+      "pin_memory": false,
+      "max_vocab_size": null,
+      "min_frequency": 1,
+      "pad_token": "<pad>",
+      "unk_token": "<unk>",
+      "verify_checksums": true
+    },
+    "training": {
+      "max_epochs": 3,
+      "max_steps": null,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.1,
+      "gradient_clip_val": 1.0,
+      "warmup_steps": 200,
+      "scheduler": "cosine",
+      "eta_min_ratio": 0.1,
+      "accumulate_grad_batches": 1,
+      "eval_every_n_epochs": 1,
+      "eval_batches": null,
+      "save_best_model": true,
+      "save_final_model": true,
+      "checkpoint_metric": "val_perplexity",
+      "checkpoint_mode": "min",
+      "log_every_n_steps": 50,
+      "early_stopping": false,
+      "early_stopping_patience": 5,
+      "early_stopping_min_delta": 0.1,
+      "precision": null,
+      "deterministic": true,
+      "benchmark": false
+    },
+    "optimizer": {
+      "_target_": "torch.optim.AdamW",
+      "lr": 0.0003,
+      "weight_decay": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "eps": 1e-08
+    },
+    "logging_cfg": {
+      "level": "INFO",
+      "log_to_file": true,
+      "log_to_console": true,
+      "wandb": {
+        "enabled": false,
+        "project": "transformer-ablation-study",
+        "entity": null,
+        "tags": [],
+        "notes": "",
+        "mode": "online"
+      },
+      "tensorboard": {
+        "enabled": false
+      },
+      "json_log": true
+    },
+    "experiment": {
+      "name": "abl_linear_ffn",
+      "phase": "phase3_screening",
+      "description": "Replace GELU activation in FFN with identity (linear FFN). Tests the role of non-linearity in the feed-forward component.\n",
+      "hypothesis": "H3",
+      "hypothesis_statement": "Removing FFN non-linearity degrades performance, but the degradation may be smaller than expected if self-attention provides sufficient non-linearity.\n",
+      "independent_variable": "activation",
+      "independent_variable_value": "linear",
+      "controlled_variables": [
+        "d_model",
+        "n_heads",
+        "n_layers",
+        "d_ff",
+        "pre_norm",
+        "use_residual",
+        "pos_encoding",
+        "dataset",
+        "training"
+      ],
+      "num_seeds": 2,
+      "seeds": [
+        42,
+        1337
+      ],
+      "model_overrides": {
+        "activation": "linear"
+      }
+    },
+    "experiment_name": "baseline",
+    "seed": 42,
+    "runtime": {
+      "device": "cuda"
+    },
+    "paths": {
+      "data_dir": "D:\\Desktop\\Transformer-Ablation/research/data",
+      "output_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_15-05-30_seed42",
+      "log_dir": "D:\\Desktop\\Transformer-Ablation/research/logs",
+      "checkpoint_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_15-05-30_seed42/checkpoints"
+    }
+  }
+}
