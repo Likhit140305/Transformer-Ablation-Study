@@ -1,0 +1,7 @@
+- experiment=baseline
+- seed=1337
+- runtime.device=cuda
+- dataset.seq_length=512
+- model.max_seq_length=512
+- training.max_epochs=2
+- dataset.batch_size=8
