@@ -1,0 +1,139 @@
+{
+  "experiment": "baseline",
+  "seed": 2023,
+  "best_val_ppl": 302.1969918075225,
+  "runtime_seconds": 135.17068810000274,
+  "total_params": 13389312,
+  "vocab_size": 33278,
+  "train_examples": 4007,
+  "validation_examples": 417,
+  "data_source": "local_verified_wikitext",
+  "dataset_name": "wikitext2",
+  "steps_completed": 1002,
+  "history": {
+    "train_loss": [
+      6.619062564365281,
+      5.938682104900408
+    ],
+    "val_loss": [
+      5.882488256449894,
+      5.71107909547911
+    ],
+    "val_ppl": [
+      358.7006714553398,
+      302.1969918075225
+    ]
+  },
+  "config": {
+    "model": {
+      "_target_": "research.models.transformer.transformer.TransformerLM",
+      "d_model": 256,
+      "n_heads": 8,
+      "n_layers": 6,
+      "d_ff": 1024,
+      "max_seq_length": 512,
+      "dropout": 0.1,
+      "emb_dropout": 0.1,
+      "attn_dropout": 0.1,
+      "ff_dropout": 0.1,
+      "pos_encoding": "learned",
+      "pre_norm": true,
+      "activation": "gelu",
+      "tie_weights": true,
+      "use_residual": true
+    },
+    "dataset": {
+      "name": "wikitext2",
+      "dataset_dir": "wikitext-2",
+      "train_file": "wiki.train.tokens",
+      "validation_file": "wiki.valid.tokens",
+      "test_file": "wiki.test.tokens",
+      "seq_length": 512,
+      "batch_size": 8,
+      "num_workers": 0,
+      "pin_memory": false,
+      "max_vocab_size": null,
+      "min_frequency": 1,
+      "pad_token": "<pad>",
+      "unk_token": "<unk>",
+      "verify_checksums": true
+    },
+    "training": {
+      "max_epochs": 2,
+      "max_steps": null,
+      "learning_rate": 0.0003,
+      "weight_decay": 0.1,
+      "gradient_clip_val": 1.0,
+      "warmup_steps": 200,
+      "scheduler": "cosine",
+      "eta_min_ratio": 0.1,
+      "accumulate_grad_batches": 1,
+      "eval_every_n_epochs": 1,
+      "eval_batches": null,
+      "save_best_model": true,
+      "save_final_model": true,
+      "checkpoint_metric": "val_perplexity",
+      "checkpoint_mode": "min",
+      "log_every_n_steps": 50,
+      "early_stopping": false,
+      "early_stopping_patience": 5,
+      "early_stopping_min_delta": 0.1,
+      "precision": null,
+      "deterministic": true,
+      "benchmark": false
+    },
+    "optimizer": {
+      "_target_": "torch.optim.AdamW",
+      "lr": 0.0003,
+      "weight_decay": 0.1,
+      "betas": [
+        0.9,
+        0.95
+      ],
+      "eps": 1e-08
+    },
+    "logging_cfg": {
+      "level": "INFO",
+      "log_to_file": true,
+      "log_to_console": true,
+      "wandb": {
+        "enabled": false,
+        "project": "transformer-ablation-study",
+        "entity": null,
+        "tags": [],
+        "notes": "",
+        "mode": "online"
+      },
+      "tensorboard": {
+        "enabled": false
+      },
+      "json_log": true
+    },
+    "experiment": {
+      "name": "baseline",
+      "phase": "phase1_variance_pilot",
+      "description": "Full Transformer baseline with pre-norm, learned positional encoding, 8 heads, GELU FFN, and residual connections. Used to estimate noise floor (\u03c3) across seeds.\n",
+      "hypothesis": null,
+      "independent_variable": "none",
+      "num_seeds": 4,
+      "seeds": [
+        42,
+        1337,
+        2023,
+        7
+      ],
+      "promotion_threshold_sigma": 3.0
+    },
+    "experiment_name": "baseline",
+    "seed": 2023,
+    "runtime": {
+      "device": "cuda"
+    },
+    "paths": {
+      "data_dir": "D:\\Desktop\\Transformer-Ablation/research/data",
+      "output_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_19-15-08_seed2023",
+      "log_dir": "D:\\Desktop\\Transformer-Ablation/research/logs",
+      "checkpoint_dir": "D:\\Desktop\\Transformer-Ablation/research/results/baseline/2026-07-22_19-15-08_seed2023/checkpoints"
+    }
+  }
+}
