@@ -39,10 +39,14 @@ def run_experiment(experiment_config: str, seed: int, device: str, additional_ar
         raise RuntimeError(f"Experiment {experiment_config} seed {seed} failed.")
     return result
 
-def collect_results(experiment_name: str, seeds: list):
-    """Collect results from JSON files in results directory."""
+def collect_results(experiment_name: str, seeds: list, *, seq_length: int, max_epochs: int):
+    """Collect one schema-v2 result per seed for an exactly specified condition.
+
+    Historical files are deliberately excluded: earlier versions did not record
+    resolved ablations and mixed runs with different training budgets.
+    """
     results_dir = Path("research/results") / experiment_name
-    ppls = []
+    by_seed = {}
 
     if not results_dir.exists():
         return None
@@ -53,9 +57,33 @@ def collect_results(experiment_name: str, seeds: list):
             if res_file.exists():
                 with open(res_file, "r") as f:
                     data = json.load(f)
-                if data.get("data_source") == "local_verified_wikitext" and data["seed"] in seeds:
-                    ppls.append(data["best_val_ppl"])
+                cfg = data.get("config", {})
+                is_requested_condition = (
+                    data.get("schema_version") == 2
+                    and data.get("data_source") == "local_verified_wikitext"
+                    and data.get("experiment") == experiment_name
+                    and data.get("seed") in seeds
+                    and cfg.get("dataset", {}).get("seq_length") == seq_length
+                    and cfg.get("training", {}).get("max_epochs") == max_epochs
+                )
+                if is_requested_condition:
+                    seed = data["seed"]
+                    if seed in by_seed:
+                        raise RuntimeError(
+                            f"Duplicate completed runs for {experiment_name}, seed={seed}, "
+                            f"seq_length={seq_length}, max_epochs={max_epochs}. "
+                            "Do not treat repeat runs as independent seeds; archive one explicitly."
+                        )
+                    by_seed[seed] = data["best_val_ppl"]
 
+    missing = sorted(set(seeds) - set(by_seed))
+    if missing:
+        raise RuntimeError(
+            f"Missing schema-v2 results for {experiment_name}; required seeds: {missing}. "
+            "Rerun the exact condition rather than mixing historical output."
+        )
+
+    ppls = [by_seed[seed] for seed in seeds]
     if not ppls:
         return None
 
@@ -82,17 +110,18 @@ def find_completed_run(experiment_name: str, seed: int, seq_length: int, max_epo
         cfg = data.get("config", {})
         if (data.get("seed") == seed
                 and cfg.get("dataset", {}).get("seq_length") == seq_length
-                and cfg.get("training", {}).get("max_epochs") == max_epochs):
+                and cfg.get("training", {}).get("max_epochs") == max_epochs
+                and data.get("schema_version") == 2):
             return data
     return None
 
 def phase1_variance_pilot(device):
     logger.info("=== PHASE 1: Variance Pilot ===")
-    seeds = [42, 1337, 2023, 7]
+    seeds = [42, 1337, 2023, 7, 31415]
     for seed in seeds:
         run_experiment("baseline", seed, device)
 
-    stats = collect_results("baseline", seeds)
+    stats = collect_results("baseline", seeds, seq_length=128, max_epochs=30)
     logger.info(f"Baseline Stats: Mean PPL = {stats['mean']:.4f}, Std = {stats['std']:.4f}")
     return stats
 
@@ -107,19 +136,23 @@ def phase3_screening(baseline_stats, device):
         "abl_post_layernorm",
         "abl_linear_ffn"
     ]
-    seeds = [42, 1337]
+    # Screening is exploratory but uses an internally matched baseline.
+    # Promotion is not a significance claim; confirmation needs fresh seeds.
+    seeds = [42, 1337, 2023]
     promoted = []
 
-    sigma = baseline_stats["std"]
-    threshold = 3 * sigma
+    for seed in seeds:
+        run_experiment("baseline", seed, device, ["training.max_epochs=5"])
+    screening_baseline = collect_results("baseline", seeds, seq_length=128, max_epochs=5)
+    threshold = 3 * screening_baseline["std"]
 
     for abl in ablations:
         for seed in seeds:
             run_experiment(abl, seed, device, ["training.max_epochs=5"])
 
-        stats = collect_results(abl, seeds)
+        stats = collect_results(abl, seeds, seq_length=128, max_epochs=5)
         if stats:
-            delta = abs(stats["mean"] - baseline_stats["mean"])
+            delta = abs(stats["mean"] - screening_baseline["mean"])
             logger.info(f"{abl}: Mean PPL = {stats['mean']:.4f} | Delta = {delta:.4f} (Threshold: {threshold:.4f})")
 
             if delta > threshold:
@@ -133,12 +166,7 @@ def phase3_screening(baseline_stats, device):
 def recompute_promoted_from_disk(device):
     """Re-derive baseline_stats and the promoted list from results already on disk,
     without rerunning phase 1 or phase 3. Mirrors phase3_screening's own threshold logic."""
-    baseline_stats = collect_results("baseline", [42, 1337, 2023, 7])
-    if baseline_stats is None:
-        raise RuntimeError(
-            "No completed phase 1 baseline results found on disk under research/results/baseline/. "
-            "Phase 1 must actually be complete before resuming at phase 4."
-        )
+    baseline_stats = collect_results("baseline", [42, 1337, 2023, 7, 31415], seq_length=128, max_epochs=30)
     logger.info(f"Recovered Baseline Stats from disk: Mean PPL = {baseline_stats['mean']:.4f}, Std = {baseline_stats['std']:.4f}")
 
     ablations = [
@@ -150,16 +178,16 @@ def recompute_promoted_from_disk(device):
         "abl_post_layernorm",
         "abl_linear_ffn"
     ]
-    sigma = baseline_stats["std"]
-    threshold = 3 * sigma
+    screening_baseline = collect_results("baseline", [42, 1337, 2023], seq_length=128, max_epochs=5)
+    threshold = 3 * screening_baseline["std"]
     promoted = []
     for abl in ablations:
-        stats = collect_results(abl, [42, 1337])
+        stats = collect_results(abl, [42, 1337, 2023], seq_length=128, max_epochs=5)
         if stats is None:
             logger.warning(f"No phase 3 results found on disk for {abl} — treating as not promoted. "
                             f"If phase 3 actually ran this ablation, check research/results/{abl}/ exists.")
             continue
-        delta = abs(stats["mean"] - baseline_stats["mean"])
+        delta = abs(stats["mean"] - screening_baseline["mean"])
         if delta > threshold:
             logger.info(f"--> PROMOTED (from disk): {abl} | delta={delta:.4f} > threshold={threshold:.4f}")
             promoted.append(abl)
@@ -170,9 +198,11 @@ def recompute_promoted_from_disk(device):
 
 def phase4_interaction(promoted_ablations, device):
     logger.info("=== PHASE 4: Sequence-Length Interaction ===")
-    seeds = [42, 1337, 2023]
+    # This is the confirmatory stage: use new, adequately replicated full-budget
+    # runs.  Do not report the short screening runs as final evidence.
+    seeds = [42, 1337, 2023, 7, 31415]
     lengths = [128, 512]
-    max_epochs = 2
+    max_epochs = 30
 
     configs_to_run = ["baseline"] + promoted_ablations
 

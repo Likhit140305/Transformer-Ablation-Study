@@ -33,6 +33,10 @@ class FeedForward(nn.Module):
                 self.activation = F.relu
             elif activation.lower() == "gelu":
                 self.activation = F.gelu
+            elif activation.lower() in {"linear", "identity", "none"}:
+                # Keeping the two linear projections makes this a controlled
+                # non-linearity ablation rather than a change in FFN width.
+                self.activation = lambda x: x
             else:
                 raise ValueError(f"Unsupported activation: {activation}")
         else:

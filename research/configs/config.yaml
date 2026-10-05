@@ -14,7 +14,9 @@ defaults:
   - _self_
 
 # ── Experiment Identity ────────────────────────────────────────────────────────
-experiment_name: baseline
+# This must follow the selected experiment group.  A literal "baseline" here
+# silently stored every ablation in the baseline result directory.
+experiment_name: ${experiment.name}
 seed: 42
 
 # Experiments in this study require the NVIDIA GPU. Training aborts rather than
