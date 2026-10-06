@@ -6,7 +6,6 @@
 
 # @package experiment
 name: abl_no_residual
-phase: phase3_screening
 description: >
   Remove residual connections from all transformer blocks.
   This is expected to be the most severe ablation and will serve as the
@@ -30,8 +29,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 model_overrides:
   use_residual: false

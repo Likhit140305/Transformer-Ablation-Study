@@ -1,0 +1,5 @@
+- experiment=abl_no_pos_enc
+- seed=42
+- dataset.seq_length=512
+- dataset.batch_size=8
+- runtime.device=cuda

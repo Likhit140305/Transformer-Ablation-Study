@@ -1,34 +1,13 @@
 # =============================================================================
-# Baseline Experiment — No ablation, full architecture
-# Pre-registered hypothesis: This should be the strongest model.
+# Baseline — full architecture, the control condition for every ablation.
+# Pre-LN, learned absolute positions, 8 heads, GELU FFN (4x), residuals.
 # =============================================================================
 
 # @package experiment
-
-# ── Metadata ──────────────────────────────────────────────────────────────────
 name: baseline
-phase: phase1_variance_pilot
 description: >
   Full Transformer baseline with pre-norm, learned positional encoding,
   8 heads, GELU FFN, and residual connections.
-  Used to estimate noise floor (σ) across seeds.
-
-# ── Hypothesis ────────────────────────────────────────────────────────────────
-hypothesis: null   # Baseline has no ablation hypothesis — it is the control condition.
-
-# ── Independent Variable ───────────────────────────────────────────────────────
+hypothesis: null
 independent_variable: none
-
-# ── Architecture Overrides ────────────────────────────────────────────────────
-# No overrides — all defaults from transformer_base.yaml apply.
-
-# ── Statistical Protocol ──────────────────────────────────────────────────────
-num_seeds: 4            # Variance pilot: 4 seeds to estimate σ
-seeds: [42, 1337, 2023, 7]
-
-# ── Promotion Criteria (PRE-REGISTERED) ───────────────────────────────────────
-# An ablation advances to confirmation only if:
-#   |ΔPerplexity| > 3σ (estimated from this pilot)
-#   AND effect direction is consistent across all screening seeds.
-# These criteria are fixed BEFORE any ablation results are observed.
-promotion_threshold_sigma: 3.0
+model_overrides: {}

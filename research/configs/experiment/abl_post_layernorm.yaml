@@ -4,7 +4,6 @@
 
 # @package experiment
 name: abl_post_layernorm
-phase: phase3_screening
 description: >
   Switch from Pre-LN (baseline) to Post-LN.
   Tests whether normalization position affects training stability and final quality.
@@ -27,8 +26,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 model_overrides:
   pre_norm: false

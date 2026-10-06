@@ -1,0 +1,154 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage{cite}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+
+\input{tables/macros.tex}
+
+\begin{document}
+
+\title{Which Transformer Components Matter, and Does It Depend on Context Length?\\
+A Controlled Multi-Seed Ablation Study}
+
+\author{\IEEEauthorblockN{Anonymous Authors}
+\IEEEauthorblockA{Under review}}
+
+\maketitle
+
+%ABSTRACT%
+
+\section{Introduction}
+
+The Transformer~\cite{vaswani2017attention} combines several components: token and positional
+embeddings, multi-head self-attention, a position-wise feed-forward network (FFN), residual
+connections~\cite{he2016deep}, and layer normalization~\cite{ba2016layer}. Practitioners treat
+each of these as essential, yet published ablations of them are rarely like-for-like. They
+change several things at once, use a single seed, or compare models trained with different
+budgets. Narang et~al.~\cite{narang2021transformer} found that many proposed Transformer
+modifications fail to transfer across implementations. Bouthillier et~al.~\cite{bouthillier2021accounting}
+and Dodge et~al.~\cite{dodge2020fine} showed that seed-to-seed variance alone can match or exceed
+the effects that papers report.
+
+We revisit the basic question with a deliberately narrow, tightly controlled design. Starting from
+one decoder-only language model, we remove or replace exactly one component at a time, keep the
+optimizer, schedule, data order, and number of training tokens fixed, and repeat every condition
+over \NSeeds{} seeds. We also ask whether a component's importance depends on the
+\emph{context length} the model is trained on. To answer this, we cross every condition with two
+context lengths (128 and 512 tokens) while holding the number of tokens per update fixed, and we
+test the length$\times$ablation interaction directly instead of comparing two separate significance
+verdicts.
+
+\textbf{Contributions.}
+(i)~A full-factorial study: 8 architectural conditions $\times$ 2 context lengths $\times$ \NSeeds{} seeds
+(80 training runs) under an identical compute budget, evaluated on held-out test data with
+best-validation checkpoint selection.
+(ii)~Effect sizes with confidence intervals and family-wise error control (Holm), including an
+explicit interaction contrast for context length.
+%CONTRIB3%
+(iv)~An open, tested code base in which every ablation is verified to change exactly one model
+field. This check matters in practice: an earlier version of our own pipeline silently ignored
+ablation overrides (Section~\ref{sec:validity}).
+
+\section{Related Work}
+
+\textbf{Positional information.} Causal language models can recover positional information
+without explicit encodings, because the causal mask breaks permutation
+symmetry~\cite{irie2019language,haviv2022transformer}. Kazemnejad et~al.~\cite{kazemnejad2023impact}
+found that models without positional encoding can even length-generalize better.
+\textbf{Attention heads.} Many heads can be pruned after training with little
+loss~\cite{michel2019sixteen,voita2019analyzing}. That evidence comes from removing heads post hoc
+and does not tell us what happens when a model is \emph{trained} with fewer heads.
+\textbf{FFN.} FFN layers have been interpreted as key--value memories~\cite{geva2021transformer}.
+Without them, or without residual paths, pure attention degenerates toward rank
+collapse~\cite{dong2021attention}.
+\textbf{Normalization placement.} Pre-LN trains stably without careful warmup, whereas Post-LN
+is prone to divergence and depends more on warmup~\cite{xiong2020layer,liu2020understanding}.
+Our study measures all of these effects in one controlled setting.
+
+\section{Experimental Setup}
+
+\subsection{Model}
+The baseline is a 6-layer decoder-only Transformer with $d_\text{model}=256$, 8 heads of width~32,
+an FFN with inner width $d_\text{ff}=1024$ and GELU~\cite{hendrycks2016gelu}, Pre-LN residual
+blocks, learned absolute position embeddings, and input/output embedding
+tying~\cite{press2017using}. Dropout is 0.1 on embeddings, attention weights, the FFN hidden layer,
+and each residual branch. All linear and embedding weights are initialized from
+$\mathcal{N}(0,0.02^2)$. Attention uses PyTorch's fused scaled-dot-product kernel~\cite{dao2022flashattention}
+with a causal mask. The model has 13.29M parameters at $L{=}128$, of which 8.52M are the tied
+embedding matrix.
+
+\subsection{Ablations}
+Each ablation changes exactly one configuration field (Table~\ref{tab:main}). Our test suite
+checks this property by composing every experiment configuration and diffing it against the baseline.
+\begin{itemize}
+\item \textbf{No positional enc.}: no position signal at all; order is visible only through the causal mask.
+\item \textbf{Sinusoidal pos.\ enc.}: fixed sinusoids~\cite{vaswani2017attention} replace learned embeddings.
+\item \textbf{Single head}: one 256-dimensional head; parameter count is unchanged.
+\item \textbf{FFN width $1\times$}: $d_\text{ff}=256$, which removes 2.36M parameters (18\%).
+\item \textbf{Linear FFN}: GELU is replaced by the identity while both projections are kept, so
+  the parameter count is unchanged and the FFN is an (over-parameterized) linear map.
+\item \textbf{No residual}: the skip term is removed from every sub-layer, i.e., $x\mapsto\mathrm{Dropout}(F(\mathrm{LN}(x)))$.
+\item \textbf{Post-LN}: $x\mapsto\mathrm{LN}(x+\mathrm{Dropout}(F(x)))$, without the final LN.
+\end{itemize}
+
+\subsection{Data and training}
+We use word-level WikiText-2~\cite{merity2017pointer}. The vocabulary (33{,}278 types) is fitted on
+the training split only. Each split is tokenized on whitespace and cut into contiguous,
+non-overlapping chunks of $L$ tokens (2.05M training tokens). We do not add an end-of-line token,
+so absolute perplexities are not directly comparable to published WikiText-2 numbers. They are,
+however, exactly comparable across our conditions. All runs use AdamW~\cite{loshchilov2019decoupled}
+($\beta{=}(0.9,0.95)$, weight decay 0.1, peak learning rate $3{\times}10^{-4}$), 200 linear warm-up
+steps, cosine decay to $0.1\times$ the peak, and gradient clipping at~1.0. Training lasts 20 epochs
+(10{,}020 updates), with bf16 autocast and an fp32 loss.
+
+\textbf{Context length.} For $L{=}512$ we set the batch size to 8 instead of 32. Every update
+therefore sees 4{,}096 tokens at both lengths, and both lengths receive the same number of updates
+and the same total number of training tokens. Only the context available to each prediction changes.
+
+\textbf{Protocol.} After each epoch we compute validation perplexity and keep the best checkpoint.
+That checkpoint is evaluated once on the test split, and test perplexity is the primary metric.
+A seed fixes model initialization, dropout masks, and data order. We use the seeds
+$\{42, 1337, 2023, 7, 31415\}$, and every cell of the grid uses the same seed set.
+
+\subsection{Statistical analysis}
+All comparisons use per-token test cross-entropy $\ell$, so a difference
+$\Delta\ell$ corresponds to a perplexity ratio $e^{\Delta\ell}$. For each ablation and length we
+compare the ablation with the baseline at the same length using Welch's
+$t$-test~\cite{welch1947generalization}. The resulting 14 $p$-values are adjusted with Holm's
+step-down procedure~\cite{holm1979simple}. To test whether context length modulates an effect, we
+estimate the interaction contrast
+\begin{equation}
+I = (\bar\ell_{a,512}-\bar\ell_{b,512})-(\bar\ell_{a,128}-\bar\ell_{b,128}),
+\end{equation}
+where $a$ is the ablation and $b$ the baseline. Its standard error combines the four independent
+cell variances, and its degrees of freedom follow Welch--Satterthwaite. We Holm-adjust the seven
+interaction tests as a separate family. $I>0$ means the ablation hurts \emph{more} at longer
+context, in relative (perplexity-ratio) terms. All confidence intervals are 95\%.
+
+%RESULTS%
+
+\section{Threats to Validity}\label{sec:validity}
+\textbf{Scale.} Our models are small (13M parameters) and are trained on 2M tokens, so the
+conclusions may not hold at scale; Narang et~al.~\cite{narang2021transformer} observe that
+architecture effects can change with scale.
+\textbf{Fixed hyperparameters.} Every condition shares the baseline's learning rate, warmup, and
+schedule, so we measure each ablation \emph{as a drop-in change}, not at its own optimum. Post-LN
+in particular is known to be sensitive to warmup~\cite{xiong2020layer}.
+\textbf{Two lengths.} An interaction measured at two points shows that importance changes with
+length, but it cannot describe the shape of the dependence.
+\textbf{Pipeline errors.} During development, our training script silently ignored ablation
+overrides and saved every run under the baseline's name. Those runs were discarded. We added a
+regression test that composes every configuration and asserts that exactly the declared field
+changes, and each result file records the fully resolved model configuration and a configuration
+hash. We recommend this kind of test for any ablation code base.
+
+%CONCLUSION%
+
+\bibliographystyle{IEEEtran}
+\bibliography{references}
+
+\end{document}

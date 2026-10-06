@@ -120,8 +120,8 @@ def load_wikitext_datasets(
     max_vocab_size: int | None,
     min_frequency: int,
     verify_checksums: bool,
-) -> tuple[CausalLanguageModelDataset, CausalLanguageModelDataset, WordVocabulary]:
-    """Load local WikiText train/validation data and derive its training-only vocabulary."""
+) -> tuple[CausalLanguageModelDataset, CausalLanguageModelDataset, CausalLanguageModelDataset, WordVocabulary]:
+    """Load local WikiText train/validation/test splits with a training-only vocabulary."""
     root = Path(data_dir)
     split_root = root / dataset_dir
     required = {split: split_root / filename for split, filename in files.items()}
@@ -134,10 +134,8 @@ def load_wikitext_datasets(
     vocabulary = WordVocabulary.fit(
         required["train"], pad_token, unk_token, max_vocab_size, min_frequency
     )
-    train_ids = vocabulary.encode(required["train"].read_text(encoding="utf-8").split())
-    validation_ids = vocabulary.encode(required["validation"].read_text(encoding="utf-8").split())
-    return (
-        CausalLanguageModelDataset(train_ids, seq_length),
-        CausalLanguageModelDataset(validation_ids, seq_length),
-        vocabulary,
+    splits = tuple(
+        CausalLanguageModelDataset(vocabulary.encode(required[name].read_text(encoding="utf-8").split()), seq_length)
+        for name in ("train", "validation", "test")
     )
+    return (*splits, vocabulary)

@@ -1,0 +1,24 @@
+[2026-10-06 03:12:03,761][__main__][INFO] - Starting abl_post_layernorm | seed=1337 | seq_length=128 | model={'_target_': 'research.models.transformer.transformer.TransformerLM', 'd_model': 256, 'n_heads': 8, 'n_layers': 6, 'd_ff': 1024, 'max_seq_length': 128, 'dropout': 0.1, 'emb_dropout': 0.1, 'attn_dropout': 0.1, 'ff_dropout': 0.1, 'pos_encoding': 'learned', 'pre_norm': False, 'activation': 'gelu', 'tie_weights': True, 'use_residual': True}
+[2026-10-06 03:12:04,452][__main__][INFO] - Sequences: train=16030 val=1670 test=1884 | vocab=33278
+[2026-10-06 03:12:05,154][__main__][INFO] - Model parameters: 13290496
+[2026-10-06 03:12:27,401][__main__][INFO] - epoch=1 train_loss=7.1857 val_loss=5.9064 val_ppl=367.37
+[2026-10-06 03:12:49,360][__main__][INFO] - epoch=2 train_loss=5.8710 val_loss=5.5888 val_ppl=267.41
+[2026-10-06 03:13:11,274][__main__][INFO] - epoch=3 train_loss=5.5614 val_loss=5.3814 val_ppl=217.33
+[2026-10-06 03:13:33,252][__main__][INFO] - epoch=4 train_loss=5.3411 val_loss=5.2562 val_ppl=191.76
+[2026-10-06 03:13:55,166][__main__][INFO] - epoch=5 train_loss=5.1729 val_loss=5.1695 val_ppl=175.83
+[2026-10-06 03:14:17,134][__main__][INFO] - epoch=6 train_loss=5.0379 val_loss=5.0936 val_ppl=162.98
+[2026-10-06 03:14:39,064][__main__][INFO] - epoch=7 train_loss=4.9262 val_loss=5.0506 val_ppl=156.11
+[2026-10-06 03:15:01,068][__main__][INFO] - epoch=8 train_loss=4.8302 val_loss=5.0130 val_ppl=150.35
+[2026-10-06 03:15:23,002][__main__][INFO] - epoch=9 train_loss=4.7486 val_loss=4.9826 val_ppl=145.86
+[2026-10-06 03:15:44,984][__main__][INFO] - epoch=10 train_loss=4.6774 val_loss=4.9499 val_ppl=141.17
+[2026-10-06 03:16:06,949][__main__][INFO] - epoch=11 train_loss=4.6156 val_loss=4.9375 val_ppl=139.42
+[2026-10-06 03:16:28,900][__main__][INFO] - epoch=12 train_loss=4.5624 val_loss=4.9278 val_ppl=138.08
+[2026-10-06 03:16:50,823][__main__][INFO] - epoch=13 train_loss=4.5162 val_loss=4.9198 val_ppl=136.98
+[2026-10-06 03:17:12,784][__main__][INFO] - epoch=14 train_loss=4.4766 val_loss=4.9135 val_ppl=136.12
+[2026-10-06 03:17:34,703][__main__][INFO] - epoch=15 train_loss=4.4433 val_loss=4.9078 val_ppl=135.35
+[2026-10-06 03:17:56,646][__main__][INFO] - epoch=16 train_loss=4.4148 val_loss=4.9075 val_ppl=135.30
+[2026-10-06 03:18:18,563][__main__][INFO] - epoch=17 train_loss=4.3923 val_loss=4.9007 val_ppl=134.38
+[2026-10-06 03:18:40,567][__main__][INFO] - epoch=18 train_loss=4.3739 val_loss=4.9023 val_ppl=134.60
+[2026-10-06 03:19:02,521][__main__][INFO] - epoch=19 train_loss=4.3591 val_loss=4.8987 val_ppl=134.11
+[2026-10-06 03:19:24,439][__main__][INFO] - epoch=20 train_loss=4.3485 val_loss=4.8972 val_ppl=133.91
+[2026-10-06 03:19:25,469][__main__][INFO] - Done: best_val_ppl=133.911 (epoch 20) test_ppl=127.313

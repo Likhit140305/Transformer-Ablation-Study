@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
-from typing import Optional
-from ...models.embedding.token_embedding import TokenEmbedding
-from ...models.embedding.positional_embedding import PositionalEncoding
-from ...models.attention.multi_head_attention import MultiHeadAttention
-from ...models.ffn.feed_forward import FeedForward
-from ...models.layernorm.layer_norm import LayerNorm
-from ...models.residual.residual_connection import ResidualConnection
+
+from ..attention.multi_head_attention import MultiHeadAttention
+from ..embedding.positional_embedding import SinusoidalPositionalEncoding
+from ..embedding.token_embedding import TokenEmbedding
+from ..ffn.feed_forward import FeedForward
+from ..residual.residual_connection import ResidualConnection
 
 
 class TransformerBlock(nn.Module):
@@ -15,34 +14,27 @@ class TransformerBlock(nn.Module):
         d_model: int,
         n_heads: int,
         d_ff: int,
-        dropout: float = 0.1,
-        activation: str = "gelu",
-        attn_dropout: float = 0.1,
-        ff_dropout: float = 0.1,
-        pre_norm: bool = True,
-        use_residual: bool = True,
+        dropout: float,
+        activation: str,
+        attn_dropout: float,
+        ff_dropout: float,
+        pre_norm: bool,
+        use_residual: bool,
     ):
         super().__init__()
-        self.self_attn = MultiHeadAttention(
-            d_model=d_model, n_heads=n_heads, dropout=attn_dropout, bias=True
-        )
-        self.ffn = FeedForward(
-            d_model=d_model, d_ff=d_ff, dropout=ff_dropout, activation=activation
-        )
-        self.attn_residual = ResidualConnection(
-            d_model=d_model, dropout=dropout, pre_norm=pre_norm, use_residual=use_residual
-        )
-        self.ffn_residual = ResidualConnection(
-            d_model=d_model, dropout=dropout, pre_norm=pre_norm, use_residual=use_residual
-        )
+        self.self_attn = MultiHeadAttention(d_model, n_heads, dropout=attn_dropout)
+        self.ffn = FeedForward(d_model, d_ff, dropout=ff_dropout, activation=activation)
+        self.attn_residual = ResidualConnection(d_model, dropout, pre_norm, use_residual)
+        self.ffn_residual = ResidualConnection(d_model, dropout, pre_norm, use_residual)
 
-    def forward(self, x: torch.Tensor, mask: Optional[torch.Tensor] = None) -> torch.Tensor:
-        x = self.attn_residual(x, lambda _x: self.self_attn(_x, _x, _x, mask=mask))
-        x = self.ffn_residual(x, self.ffn)
-        return x
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        x = self.attn_residual(x, self.self_attn)
+        return self.ffn_residual(x, self.ffn)
 
 
 class TransformerLM(nn.Module):
+    """Decoder-only causal language model whose components can be ablated independently."""
+
     def __init__(
         self,
         vocab_size: int,
@@ -56,90 +48,52 @@ class TransformerLM(nn.Module):
         activation: str = "gelu",
         attn_dropout: float = 0.1,
         ff_dropout: float = 0.1,
-        pos_encoding: str = "learned", 
+        pos_encoding: str = "learned",
         pre_norm: bool = True,
         use_residual: bool = True,
         tie_weights: bool = True,
         padding_idx: int = 0,
     ):
         super().__init__()
-        self.d_model = d_model
-        self.vocab_size = vocab_size
-        self.pos_embedding_type = pos_encoding
-        self.pre_norm = pre_norm
-
-        self.token_embedding = TokenEmbedding(vocab_size=vocab_size, d_model=d_model, padding_idx=padding_idx)
-
+        self.token_embedding = TokenEmbedding(vocab_size, d_model, padding_idx=padding_idx)
+        self.pos_encoding = pos_encoding
         if pos_encoding == "learned":
             self.pos_embedding = nn.Embedding(max_seq_length, d_model)
         elif pos_encoding == "sinusoidal":
-            self.pos_embedding = PositionalEncoding(d_model=d_model, max_len=max_seq_length)
-        elif pos_encoding == "none":
-            self.pos_embedding = None
-        else:
+            self.pos_embedding = SinusoidalPositionalEncoding(d_model, max_seq_length)
+        elif pos_encoding != "none":
             raise ValueError(f"Unknown pos_encoding: {pos_encoding}")
 
         self.emb_dropout = nn.Dropout(emb_dropout)
-
-        self.layers = nn.ModuleList([
-            TransformerBlock(
-                d_model=d_model,
-                n_heads=n_heads,
-                d_ff=d_ff,
-                dropout=dropout,
-                activation=activation,
-                attn_dropout=attn_dropout,
-                ff_dropout=ff_dropout,
-                pre_norm=pre_norm,
-                use_residual=use_residual,
-            ) for _ in range(n_layers)
-        ])
-
-        # If pre_norm, we typically apply a final layer norm before the projection
-        self.final_norm = LayerNorm(d_model) if pre_norm else nn.Identity()
+        self.layers = nn.ModuleList(
+            TransformerBlock(d_model, n_heads, d_ff, dropout, activation, attn_dropout, ff_dropout, pre_norm, use_residual)
+            for _ in range(n_layers)
+        )
+        # Post-LN blocks already end in a LayerNorm; Pre-LN needs one before the head.
+        self.final_norm = nn.LayerNorm(d_model) if pre_norm else nn.Identity()
         self.output_projection = nn.Linear(d_model, vocab_size, bias=False)
-
+        self.apply(self._init_weights)
         if tie_weights:
             self.output_projection.weight = self.token_embedding.embedding.weight
 
-        self.apply(self._init_weights)
+    @staticmethod
+    def _init_weights(module: nn.Module) -> None:
+        if isinstance(module, (nn.Linear, nn.Embedding)):
+            nn.init.normal_(module.weight, mean=0.0, std=0.02)
+        if isinstance(module, nn.Linear) and module.bias is not None:
+            nn.init.zeros_(module.bias)
+        if isinstance(module, nn.Embedding) and module.padding_idx is not None:
+            with torch.no_grad():
+                module.weight[module.padding_idx].zero_()
 
-    def _init_weights(self, module):
-        if isinstance(module, nn.Linear):
-            module.weight.data.normal_(mean=0.0, std=0.02)
-            if module.bias is not None:
-                module.bias.data.zero_()
-        elif isinstance(module, nn.Embedding):
-            module.weight.data.normal_(mean=0.0, std=0.02)
-            if module.padding_idx is not None:
-                module.weight.data[module.padding_idx].zero_()
-
-    def forward(self, input_ids: torch.Tensor, attention_mask: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def forward(self, input_ids: torch.Tensor) -> torch.Tensor:
         seq_len = input_ids.size(1)
-        device = input_ids.device
-
-        causal_mask = torch.tril(torch.ones((seq_len, seq_len), device=device)).bool()
-        causal_mask = causal_mask.unsqueeze(0).unsqueeze(1) 
-
-        if attention_mask is not None:
-            padding_mask = attention_mask.unsqueeze(1).unsqueeze(2) 
-            mask = causal_mask & padding_mask
-        else:
-            mask = causal_mask
-
         x = self.token_embedding(input_ids)
-
-        if self.pos_embedding_type == "learned":
-            positions = torch.arange(0, seq_len, device=device).unsqueeze(0)
-            x = x + self.pos_embedding(positions)
-        elif self.pos_embedding_type == "sinusoidal":
-            x = self.pos_embedding(x)
-        
+        if self.pos_encoding == "learned":
+            x = x + self.pos_embedding(torch.arange(seq_len, device=input_ids.device))
+        elif self.pos_encoding == "sinusoidal":
+            x = x + self.pos_embedding(seq_len)
         x = self.emb_dropout(x)
-
         for layer in self.layers:
-            x = layer(x, mask=mask)
-
-        x = self.final_norm(x)
-        logits = self.output_projection(x)
-        return logits
+            x = layer(x)
+        return self.output_projection(self.final_norm(x))

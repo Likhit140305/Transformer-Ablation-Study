@@ -5,7 +5,6 @@
 
 # @package experiment
 name: abl_reduced_ffn
-phase: phase3_screening
 description: >
   Reduce FFN inner dimension from 1024 to 256 (= d_model, ratio 1x vs baseline 4x).
   Tests H3: whether FFN width primarily affects optimization speed or final perplexity.
@@ -29,8 +28,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 model_overrides:
   d_ff: 256

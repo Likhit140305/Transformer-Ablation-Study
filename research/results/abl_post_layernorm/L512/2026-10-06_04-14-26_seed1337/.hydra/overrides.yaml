@@ -1,0 +1,5 @@
+- experiment=abl_post_layernorm
+- seed=1337
+- dataset.seq_length=512
+- dataset.batch_size=8
+- runtime.device=cuda

@@ -4,7 +4,6 @@
 
 # @package experiment
 name: abl_sinusoidal_pos
-phase: phase3_screening
 description: >
   Replace learned positional encoding with fixed sinusoidal encoding.
   Tests whether position representation type (learned vs fixed) matters.
@@ -27,8 +26,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 model_overrides:
   pos_encoding: sinusoidal

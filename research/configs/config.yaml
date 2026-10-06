@@ -9,13 +9,10 @@ defaults:
   - dataset: wikitext2
   - training: base
   - optimizer: adamw
-  - logging_cfg: default
   - experiment: baseline
   - _self_
 
 # ── Experiment Identity ────────────────────────────────────────────────────────
-# This must follow the selected experiment group.  A literal "baseline" here
-# silently stored every ablation in the baseline result directory.
 experiment_name: ${experiment.name}
 seed: 42
 
@@ -27,9 +24,7 @@ runtime:
 # ── Paths ─────────────────────────────────────────────────────────────────────
 paths:
   data_dir: ${hydra:runtime.cwd}/research/data
-  output_dir: ${hydra:runtime.cwd}/research/results/${experiment_name}/${now:%Y-%m-%d_%H-%M-%S}_seed${seed}
-  log_dir: ${hydra:runtime.cwd}/research/logs
-  checkpoint_dir: ${paths.output_dir}/checkpoints
+  output_dir: ${hydra:runtime.cwd}/research/results/${experiment_name}/L${dataset.seq_length}/${now:%Y-%m-%d_%H-%M-%S}_seed${seed}
 
 # ── Hydra Output ──────────────────────────────────────────────────────────────
 hydra:

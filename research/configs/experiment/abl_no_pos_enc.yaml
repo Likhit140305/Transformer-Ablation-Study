@@ -6,7 +6,6 @@
 
 # @package experiment
 name: abl_no_pos_enc
-phase: phase3_screening
 description: >
   Ablation removing positional encoding entirely.
   Tests H1: whether positional information is critical and how its importance
@@ -30,8 +29,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 # Model overrides (applied on top of transformer_base defaults)
 model_overrides:

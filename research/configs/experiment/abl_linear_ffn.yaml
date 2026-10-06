@@ -4,7 +4,6 @@
 
 # @package experiment
 name: abl_linear_ffn
-phase: phase3_screening
 description: >
   Replace GELU activation in FFN with identity (linear FFN).
   Tests the role of non-linearity in the feed-forward component.
@@ -27,8 +26,6 @@ controlled_variables:
   - dataset
   - training
 
-num_seeds: 2
-seeds: [42, 1337]
 
 model_overrides:
   activation: linear

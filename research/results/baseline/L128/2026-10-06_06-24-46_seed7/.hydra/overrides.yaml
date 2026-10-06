@@ -1,0 +1,5 @@
+- experiment=baseline
+- seed=7
+- dataset.seq_length=128
+- dataset.batch_size=32
+- runtime.device=cuda
