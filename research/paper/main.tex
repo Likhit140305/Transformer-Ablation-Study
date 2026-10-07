@@ -19,7 +19,26 @@ A Controlled Multi-Seed Ablation Study}
 
 \maketitle
 
-%ABSTRACT%
+\begin{abstract}
+We ablate seven components of a 13M-parameter decoder-only Transformer language model on
+WikiText-2, one at a time. Each ablation is crossed with two training context lengths
+(128 and 512 tokens) at a fixed token budget, with five seeds per cell (80 runs).
+Removing residual connections is catastrophic: test perplexity rises $7.1\times$, leaving the
+model close to a context-free unigram predictor. Replacing the FFN non-linearity with the identity
+costs 20--27\% perplexity, narrowing the FFN to $1\times$ width costs 8--10\%, and collapsing to a
+single attention head costs 5--6\%. Removing positional encoding entirely costs only 2.6\% at
+128 tokens. Context length significantly changes the importance of two components. The cost of
+removing positional encoding nearly triples, to 7.4\%, at 512 tokens, and the cost of a linear
+FFN grows from 19.6\% to 27.1\% (Holm-corrected $p<10^{-4}$ for both interactions). A convergence
+diagnostic shows that neither interaction is a transient of slower long-context training. Fixed
+sinusoidal encodings outperform learned ones at both lengths. Post-LN trails Pre-LN by 3\% at
+128 tokens and is indistinguishable at 512. We release code whose tests verify that each ablation
+changes exactly one model component.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Transformer, ablation study, language modeling, positional encoding, residual connections, reproducibility
+\end{IEEEkeywords}
 
 \section{Introduction}
 
@@ -48,7 +67,9 @@ verdicts.
 best-validation checkpoint selection.
 (ii)~Effect sizes with confidence intervals and family-wise error control (Holm), including an
 explicit interaction contrast for context length.
-%CONTRIB3%
+(iii)~Evidence that context length changes the importance of positional encoding and of the
+FFN non-linearity, together with a convergence diagnostic showing that these interactions are not
+artifacts of slower long-context training.
 (iv)~An open, tested code base in which every ablation is verified to change exactly one model
 field. This check matters in practice: an earlier version of our own pipeline silently ignored
 ablation overrides (Section~\ref{sec:validity}).
@@ -129,7 +150,147 @@ cell variances, and its degrees of freedom follow Welch--Satterthwaite. We Holm-
 interaction tests as a separate family. $I>0$ means the ablation hurts \emph{more} at longer
 context, in relative (perplexity-ratio) terms. All confidence intervals are 95\%.
 
-%RESULTS%
+\section{Results}
+
+\begin{table*}[t]
+\centering
+\caption{Test perplexity (mean $\pm$ s.d.\ over \NSeeds{} seeds) of the best-validation checkpoint,
+and its change relative to the baseline at the same context length $L$. $p_\mathrm{Holm}$: Welch
+$t$-test on per-token test loss, Holm-corrected over all 14 comparisons. Parameter counts are for
+$L{=}128$; learned position tables add 98k parameters at $L{=}512$. Absolute perplexities are
+comparable within a column, but not across $L$ (Section~\ref{sec:budget}).}
+\label{tab:main}
+\input{tables/main_results.tex}
+\end{table*}
+
+\subsection{Main effects}
+Table~\ref{tab:main} and Fig.~\ref{fig:effects} summarize the 80 runs. No run diverged. Seed
+variability is small: the baseline's test perplexity varies by only \BaselineSDShort{} (s.d.)
+at $L{=}128$. Thirteen of the fourteen ablation--length cells differ from their baseline after
+Holm correction.
+
+\textbf{Residual connections are indispensable.} Without skip connections, test perplexity rises
+from \BaselinePPLShort{} to 875 at $L{=}128$ ($+611\%$) and to 906 at $L{=}512$. A unigram model
+fitted on the training split reaches \UnigramTestPPL{} on the test set. Individual no-residual runs
+end between 843 and 947, and one seed is \emph{worse} than the unigram model. Training does not
+diverge: losses stay finite and median gradient norms are small. Instead, optimization stalls near
+the unigram solution within the first few epochs. At $L{=}128$ the best checkpoint occurs at epoch 10.6 on average,
+versus 19.6 for the baseline.
+
+\textbf{The FFN non-linearity matters far more than FFN width.} Removing GELU while keeping both
+projections, and thus every parameter, costs $+19.6\%$ ($L{=}128$) and $+27.1\%$ ($L{=}512$).
+Cutting the FFN to $1\times$ width removes 18\% of all parameters but costs only $+7.8\%$ and
+$+10.2\%$. Capacity alone is therefore not what the FFN provides; the point-wise non-linearity is.
+
+\textbf{One head is measurably worse than eight}, by $+4.6\%$ and $+5.7\%$, at an identical
+parameter count. Many heads of a trained model can be pruned~\cite{michel2019sixteen,voita2019analyzing},
+but \emph{training} with a single head still has a real cost.
+
+\textbf{Positional encoding.} Removing positional information costs only $+2.6\%$ at $L{=}128$
+(95\% CI $[1.7, 3.5]\%$). This is consistent with the observation that causal attention lets a model
+infer position implicitly~\cite{irie2019language,haviv2022transformer}. Replacing learned embeddings
+with fixed sinusoids \emph{improves} perplexity at both lengths ($-1.7\%$ and $-3.0\%$).
+
+\textbf{Normalization placement.} Post-LN is $+3.1\%$ worse at $L{=}128$ and indistinguishable
+from Pre-LN at $L{=}512$ ($+0.1\%$, $p_\mathrm{Holm}{=}0.92$). With 200 warm-up steps and 6 layers,
+Post-LN trained stably in all ten runs.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/effects.pdf}
+\caption{Test perplexity of each ablation relative to the baseline at the same context length
+(log scale; 95\% Welch confidence intervals, most narrower than the markers). Positional encoding
+and the FFN non-linearity matter more at $L{=}512$.}
+\label{fig:effects}
+\end{figure}
+
+\subsection{Context length modulates component importance}
+
+\begin{table}[t]
+\centering
+\caption{Length$\times$ablation interaction on per-token test loss,
+$I=\Delta\ell_{512}-\Delta\ell_{128}$. $I>0$: the ablation hurts more at 512 tokens.
+$e^{I}$ is the ratio of the two perplexity ratios. Holm correction is over the seven contrasts.}
+\label{tab:interaction}
+\small\setlength{\tabcolsep}{4pt}
+\input{tables/interaction.tex}
+\end{table}
+
+Table~\ref{tab:interaction} tests whether each effect differs between the two lengths. Two
+interactions are large and survive correction. \textbf{Removing positional encoding} costs
+$I{=}{+}0.045$ nats more at $L{=}512$ (95\% CI $[0.033, 0.057]$, $p_\mathrm{Holm}<10^{-4}$),
+which nearly triples the perplexity penalty, from $+2.6\%$ to $+7.4\%$. \textbf{Linearizing the FFN}
+costs $I{=}{+}0.061$ nats more ($[0.047, 0.074]$, $p_\mathrm{Holm}<10^{-4}$). Post-LN also
+shows a nominally significant interaction ($I{=}{-}0.030$, $p_\mathrm{Holm}{=}0.004$), but
+Section~\ref{sec:dynamics} shows that it is not settled. Sinusoidal encoding ($-0.014$) and the
+narrow FFN ($+0.022$) have CIs that exclude zero but do not survive Holm correction
+($p_\mathrm{Holm}{=}0.06$). We report them only as trends. Single-head and no-residual effects are
+statistically length-invariant.
+
+\subsection{Training dynamics}\label{sec:dynamics}
+Fig.~\ref{fig:curves} plots each ablation's validation perplexity relative to the baseline over
+training. An interaction could arise simply because some ablations converge more slowly at
+$L{=}512$. In that case the gap at $L{=}512$ would still be shrinking when training stops. It is
+not. For no positional encoding and the linear FFN, the $L{=}512$ validation-loss gap changes by
+less than 0.006 nats over the last five epochs (\texttt{summary.json}, \texttt{gap\_trend}), an
+order of magnitude less than the interactions themselves. Post-LN behaves differently: it leads
+the baseline early in training at both lengths, and its gap was still growing by about
+0.0007 nats per epoch at the end. Its final ranking, and hence its interaction, depends on the
+training budget, and we do not interpret it further. The narrow FFN's gap also keeps widening
+slowly ($+0.0004$ nats per epoch), so its penalty is not a convergence-speed effect; if anything
+it is a lasting capacity deficit.
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.9\textwidth]{figures/curves.pdf}
+\caption{Validation perplexity of each ablation relative to the baseline, per epoch (means over
+\NSeeds{} seeds). No-residual (3--8$\times$) is off scale and omitted. Gaps for no positional
+encoding and the linear FFN are larger at $L{=}512$ and have plateaued by the end of training.
+Post-LN's gap is still moving.}
+\label{fig:curves}
+\end{figure*}
+
+\subsection{Long context at a fixed token budget}\label{sec:budget}
+The baseline reaches \BaselinePPLLong{} test perplexity at $L{=}512$, versus \BaselinePPLShort{} at
+$L{=}128$, even though every prediction has more context available. Both lengths see the same
+tokens and updates, but the $L{=}512$ runs choose their last epoch as best in almost every case.
+To test whether this is simply slower convergence, we retrained the baseline with twice the
+budget (40 epochs, same schedule shape) on three seeds. At $L{=}512$, test perplexity drops from
+\BudgetBasePPLLong{} to \BudgetPPLLong{}~$\pm$~\BudgetSDLong{} ($-8.1\%$), and the best epoch
+moves to \BudgetEpochLong{} on average. At $L{=}128$ it improves only from \BudgetBasePPLShort{}
+to \BudgetPPLShort{}~$\pm$~\BudgetSDShort{}, and the best epoch stays near 20: these models start
+to overfit. Doubling the budget therefore shrinks the long-context deficit from 8.6\% to 2.8\%,
+but does not remove it. At our main budget, $L{=}512$ models are substantially further from
+convergence than $L{=}128$ models, so absolute perplexities should not be compared across lengths.
+This is why we compare ablations only with the baseline \emph{at the same length}, and why our
+interaction contrast is defined on these within-length ratios.
+
+\section{Discussion}
+\textbf{Why does removing positions hurt more at longer context?} A causal model without explicit
+positions can infer a token's position, for example by how much attention mass is spread over the
+prefix~\cite{haviv2022transformer}. Such implicit signals plausibly become less precise further
+into a sequence, which would make the cost grow with $L$, as we observe. The sinusoidal advantage
+points the same way. A learned position row receives gradient from $32$ sequences per update at
+$L{=}128$ but only $8$ at $L{=}512$, while sinusoids need no training. The sinusoidal advantage is
+indeed larger at $L{=}512$, although that trend does not survive correction.
+
+\textbf{The FFN's role is non-linear, not just additional capacity.} The linear FFN keeps every
+parameter yet costs 2--3 times more than removing 18\% of the parameters through a narrow FFN.
+This supports the view of FFN layers as non-linear key--value memories~\cite{geva2021transformer}.
+Why the non-linearity matters more at longer context is open. One hypothesis is that attention
+aggregates more information per position at $L{=}512$, which then needs more non-linear processing.
+
+\textbf{Residuals versus everything else.} No other ablation comes close to removing residual connections: its
+loss penalty is $8\times$ that of the next-worst ablation. Without skip paths, a 6-layer stack does not escape the unigram
+solution under our schedule. This matches analyses showing that the identity path is what keeps
+deep attention stacks trainable and prevents rank collapse~\cite{dong2021attention,he2016deep}.
+A tuned learning rate or initialization might partly rescue it, but not at the baseline's settings.
+
+\textbf{Practical takeaways.} For small decoder-only LMs: keep residuals and the FFN non-linearity
+unconditionally. Prefer fixed sinusoids over learned absolute positions when data is limited.
+Expect the cost of dropping explicit positions to grow with context length. And evaluate
+ablations at the context length you intend to deploy, because a cheap ablation at 128 tokens can
+be about three times as costly at 512.
 
 \section{Threats to Validity}\label{sec:validity}
 \textbf{Scale.} Our models are small (13M parameters) and are trained on 2M tokens, so the
@@ -140,13 +301,26 @@ schedule, so we measure each ablation \emph{as a drop-in change}, not at its own
 in particular is known to be sensitive to warmup~\cite{xiong2020layer}.
 \textbf{Two lengths.} An interaction measured at two points shows that importance changes with
 length, but it cannot describe the shape of the dependence.
+\textbf{Convergence at long context.} At the shared 20-epoch budget, $L{=}512$ models are further
+from convergence than $L{=}128$ models (Section~\ref{sec:budget}). Each ablation is compared with a
+baseline that is equally far along, and the gap diagnostic of Section~\ref{sec:dynamics} shows the two
+headline interactions are stable. Still, effect sizes at $L{=}512$ refer to this budget and might
+change with longer training.
 \textbf{Pipeline errors.} During development, our training script silently ignored ablation
 overrides and saved every run under the baseline's name. Those runs were discarded. We added a
 regression test that composes every configuration and asserts that exactly the declared field
 changes, and each result file records the fully resolved model configuration and a configuration
 hash. We recommend this kind of test for any ablation code base.
 
-%CONCLUSION%
+\section{Conclusion}
+In a controlled, multi-seed, full-factorial ablation of a small Transformer LM, residual connections
+were indispensable, the FFN non-linearity mattered far more than FFN width, and a single head or
+Post-LN cost a few percent. Component importance was not fixed. Quadrupling the context length,
+from 128 to 512 tokens, nearly tripled the cost of removing positional encoding (2.6\% to 7.4\%)
+and raised the cost of a linear FFN from 19.6\% to 27.1\%. Both interactions are robust to a
+convergence diagnostic. Scaling
+these measurements to larger models and corpora, and to more than two context lengths, is the
+natural next step.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

@@ -1,0 +1,26 @@
+2026-10-07 18:49:27,735 61 runs complete, 25 pending
+2026-10-07 18:49:27,736 [1/25] abl_linear_ffn L=512 seed=7
+2026-10-07 18:57:26,209 [2/25] abl_no_residual L=512 seed=7
+2026-10-07 19:05:26,682 [3/25] abl_post_layernorm L=512 seed=7
+2026-10-07 19:13:24,318 [4/25] baseline L=128 seed=31415
+2026-10-07 19:20:49,971 [5/25] abl_no_pos_enc L=128 seed=31415
+2026-10-07 19:28:15,032 [6/25] abl_sinusoidal_pos L=128 seed=31415
+2026-10-07 19:35:40,566 [7/25] abl_single_head L=128 seed=31415
+2026-10-07 19:43:11,215 [8/25] abl_reduced_ffn L=128 seed=31415
+2026-10-07 19:49:57,593 [9/25] abl_linear_ffn L=128 seed=31415
+2026-10-07 19:57:17,204 [10/25] abl_no_residual L=128 seed=31415
+2026-10-07 20:04:39,056 [11/25] abl_post_layernorm L=128 seed=31415
+2026-10-07 20:12:05,243 [12/25] baseline L=512 seed=31415
+2026-10-07 20:20:01,710 [13/25] abl_no_pos_enc L=512 seed=31415
+2026-10-07 20:27:57,855 [14/25] abl_sinusoidal_pos L=512 seed=31415
+2026-10-07 20:36:00,427 [15/25] abl_single_head L=512 seed=31415
+2026-10-07 20:44:13,704 [16/25] abl_reduced_ffn L=512 seed=31415
+2026-10-07 20:51:29,913 [17/25] abl_linear_ffn L=512 seed=31415
+2026-10-07 20:59:19,960 [18/25] abl_no_residual L=512 seed=31415
+2026-10-07 21:07:13,129 [19/25] abl_post_layernorm L=512 seed=31415
+2026-10-07 21:15:11,774 [20/25] baseline_2x_budget L=128 seed=42
+2026-10-07 21:29:57,293 [21/25] baseline_2x_budget L=512 seed=42
+2026-10-07 21:45:42,577 [22/25] baseline_2x_budget L=128 seed=1337
+2026-10-07 22:00:26,977 [23/25] baseline_2x_budget L=512 seed=1337
+2026-10-07 22:16:12,102 [24/25] baseline_2x_budget L=128 seed=2023
+2026-10-07 22:36:05,889 [25/25] baseline_2x_budget L=512 seed=2023

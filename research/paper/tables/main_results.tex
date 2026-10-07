@@ -1,0 +1,16 @@
+\begin{tabular}{l r r r r r r r}
+\toprule
+ & & \multicolumn{3}{c}{$L=128$} & \multicolumn{3}{c}{$L=512$} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-8}
+Condition & Params & Test PPL & $\Delta$\% & $p_\mathrm{Holm}$ & Test PPL & $\Delta$\% & $p_\mathrm{Holm}$ \\
+\midrule
+Baseline & 13.29M & 123.1 $\pm$ 0.3 & -- & -- & 133.8 $\pm$ 1.0 & -- & -- \\
+No positional enc. & 13.26M & 126.3 $\pm$ 0.9 & +2.6 & 0.001 & 143.6 $\pm$ 1.0 & +7.4 & $<$0.001 \\
+Sinusoidal pos. enc. & 13.26M & 121.0 $\pm$ 0.5 & -1.7 & $<$0.001 & 129.7 $\pm$ 0.8 & -3.0 & $<$0.001 \\
+Single head & 13.29M & 128.7 $\pm$ 0.9 & +4.6 & $<$0.001 & 141.4 $\pm$ 0.6 & +5.7 & $<$0.001 \\
+FFN width $1\times$ & 10.93M & 132.7 $\pm$ 1.1 & +7.8 & $<$0.001 & 147.5 $\pm$ 2.0 & +10.2 & $<$0.001 \\
+Linear FFN & 13.29M & 147.2 $\pm$ 0.4 & +19.6 & $<$0.001 & 170.0 $\pm$ 1.8 & +27.1 & $<$0.001 \\
+No residual & 13.29M & 875.2 $\pm$ 40.4 & +610.5 & $<$0.001 & 906.1 $\pm$ 50.1 & +576.4 & $<$0.001 \\
+Post-LN & 13.29M & 126.9 $\pm$ 0.7 & +3.1 & $<$0.001 & 133.9 $\pm$ 1.4 & +0.1 & 0.922 \\
+\bottomrule
+\end{tabular}

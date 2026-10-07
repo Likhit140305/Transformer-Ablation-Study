@@ -1,0 +1,88 @@
+model:
+  _target_: research.models.transformer.transformer.TransformerLM
+  d_model: 256
+  n_heads: 8
+  n_layers: 6
+  d_ff: 1024
+  max_seq_length: ${dataset.seq_length}
+  dropout: 0.1
+  emb_dropout: 0.1
+  attn_dropout: 0.1
+  ff_dropout: 0.1
+  pos_encoding: learned
+  pre_norm: true
+  activation: gelu
+  tie_weights: true
+  use_residual: true
+dataset:
+  name: wikitext2
+  dataset_dir: wikitext-2
+  train_file: wiki.train.tokens
+  validation_file: wiki.valid.tokens
+  test_file: wiki.test.tokens
+  seq_length: 128
+  batch_size: 32
+  num_workers: 0
+  pin_memory: false
+  max_vocab_size: null
+  min_frequency: 1
+  pad_token: <pad>
+  unk_token: <unk>
+  verify_checksums: true
+training:
+  max_epochs: 20
+  max_steps: null
+  learning_rate: 0.0003
+  weight_decay: 0.1
+  gradient_clip_val: 1.0
+  warmup_steps: 200
+  scheduler: cosine
+  eta_min_ratio: 0.1
+  accumulate_grad_batches: 1
+  precision: bf16
+  save_best_model: true
+  deterministic: false
+  benchmark: false
+optimizer:
+  _target_: torch.optim.AdamW
+  lr: ${training.learning_rate}
+  weight_decay: ${training.weight_decay}
+  betas:
+  - 0.9
+  - 0.95
+  eps: 1.0e-08
+  fused: true
+experiment:
+  name: abl_reduced_ffn
+  description: 'Reduce FFN inner dimension from 1024 to 256 (= d_model, ratio 1x vs
+    baseline 4x). Tests H3: whether FFN width primarily affects optimization speed
+    or final perplexity.
+
+    '
+  hypothesis: H3
+  hypothesis_statement: 'Reducing FFN width degrades convergence speed (training loss
+    curve) more visibly than final validation perplexity, suggesting FFN width primarily
+    affects optimization dynamics.
+
+    '
+  independent_variable: d_ff
+  independent_variable_value: 256
+  controlled_variables:
+  - d_model
+  - n_heads
+  - n_layers
+  - pre_norm
+  - activation
+  - use_residual
+  - pos_encoding
+  - dataset
+  - training
+  model_overrides:
+    d_ff: 256
+experiment_name: ${experiment.name}
+seed: 31415
+runtime:
+  device: cuda
+paths:
+  data_dir: ${hydra:runtime.cwd}/research/data
+  output_dir: ${hydra:runtime.cwd}/research/results/${experiment_name}/L${dataset.seq_length}/${now:%Y-%m-%d_%H-%M-%S}_seed${seed}

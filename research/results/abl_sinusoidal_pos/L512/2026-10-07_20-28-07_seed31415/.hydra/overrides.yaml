@@ -1,0 +1,5 @@
+- experiment=abl_sinusoidal_pos
+- seed=31415
+- dataset.seq_length=512
+- dataset.batch_size=8
+- runtime.device=cuda

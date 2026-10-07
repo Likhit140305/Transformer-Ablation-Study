@@ -162,6 +162,19 @@ def unigram_test_ppl(run: dict) -> float:
     return math.exp(-log_p[test.tokens].mean().item())
 
 
+def gap_trend(groups: dict, lengths: list[int], window: int = 5) -> list[dict]:
+    """Validation-loss gap to the baseline (seed means) at the end of training and its change over
+    the last ``window`` epochs: a gap still moving means the final effect is not yet settled."""
+    rows = []
+    for L in lengths:
+        base = np.mean([r["history"]["val_loss"] for r in groups[("baseline", L)]], axis=0)
+        for experiment in ORDER[1:]:
+            gap = np.mean([r["history"]["val_loss"] for r in groups[(experiment, L)]], axis=0) - base
+            rows.append({"experiment": experiment, "seq_length": L, "final_gap": float(gap[-1]),
+                         "change_last_epochs": float(gap[-1] - gap[-1 - window]), "window": window})
+    return rows
+
+
 def budget_control(all_groups: dict, groups: dict, lengths: list[int]) -> dict:
     """Baseline at 2x epochs vs 1x on the same seeds: does the long-context gap close with more training?"""
     out = {}
@@ -213,7 +226,7 @@ def write_tables(summary: dict, lengths: list[int], seeds: list[int], out: Path,
     if summary["interactions"]:
         lines = [
             r"\begin{tabular}{l r r r}", r"\toprule",
-            r"Ablation & Interaction (nats) & 95\% CI & $p_\mathrm{Holm}$ \\", r"\midrule",
+            r"Ablation & $I$ (nats) & 95\% CI & $p_\mathrm{Holm}$ \\", r"\midrule",
         ]
         for row in summary["interactions"]:
             lines.append(
@@ -334,9 +347,10 @@ def main() -> None:
     tables, figures = args.paper_dir / "tables", args.paper_dir / "figures"
     tables.mkdir(parents=True, exist_ok=True)
     figures.mkdir(parents=True, exist_ok=True)
-    (args.paper_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     summary["unigram_test_ppl"] = unigram_test_ppl(groups[("baseline", lengths[0])][0])
     summary["budget_control"] = budget_control(all_groups, groups, lengths)
+    summary["gap_trend"] = gap_trend(groups, lengths)
+    (args.paper_dir / "summary.json").write_text(json.dumps(summary, indent=2), encoding="utf-8")
     write_tables(summary, lengths, seeds, tables, summary["unigram_test_ppl"])
     plot_effects(summary, lengths, figures)
     plot_curves(groups, lengths, figures)
@@ -344,6 +358,8 @@ def main() -> None:
     print(f"seeds={seeds}  lengths={lengths}")
     for c in summary["comparisons"]:
         print(f"{c['experiment']:>20} L={c['seq_length']:<4} dPPL={c['ppl_ratio_pct']:+7.1f}%  p_holm={c['p_holm']:.3g}")
+    for row in summary["gap_trend"]:
+        print(f"{row['experiment']:>20} L={row['seq_length']:<4} final val gap={row['final_gap']:+.4f} change over last {row['window']} ep={row['change_last_epochs']:+.4f}")
     for L, row in summary["budget_control"].items():
         print(f"budget control L={L}: 2x {row['test_ppl_mean']:.2f}+/-{row['test_ppl_sd']:.2f} (best ep {row['best_epoch_mean']:.1f}) vs 1x {row['baseline_same_seeds_ppl']:.2f}")
     for c in summary["interactions"]:
